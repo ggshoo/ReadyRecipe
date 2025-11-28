@@ -95,6 +95,12 @@ describe("ingredientMatches", () => {
       expect(ingredientMatches("rice", "beans")).toBe(false);
       expect(ingredientMatches("tomato", "potato")).toBe(false);
     });
+
+    it("should not match when ingredient is part of another word (word boundary)", () => {
+      expect(ingredientMatches("rice", "licorice")).toBe(false);
+      expect(ingredientMatches("rice", "price")).toBe(false);
+      expect(ingredientMatches("oil", "boiled")).toBe(false);
+    });
   });
 
   describe("whitespace handling", () => {
