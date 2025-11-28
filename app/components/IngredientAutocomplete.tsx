@@ -25,7 +25,9 @@ export default function IngredientAutocomplete({
     ? CANONICAL_INGREDIENTS.filter(
         (ingredient) =>
           ingredient.toLowerCase().includes(inputValue.toLowerCase()) &&
-          !selectedIngredients.includes(ingredient)
+          !selectedIngredients.some(
+            (selected) => selected.toLowerCase() === ingredient.toLowerCase()
+          )
       )
     : [];
 
@@ -65,7 +67,12 @@ export default function IngredientAutocomplete({
 
   const handleAddNewIngredient = useCallback(() => {
     const newIngredient = inputValue.trim().toLowerCase();
-    if (newIngredient && !selectedIngredients.includes(newIngredient)) {
+    if (
+      newIngredient &&
+      !selectedIngredients.some(
+        (selected) => selected.toLowerCase() === newIngredient
+      )
+    ) {
       onAddIngredient(newIngredient);
       setInputValue("");
       setIsOpen(false);
@@ -173,7 +180,6 @@ export default function IngredientAutocomplete({
         role="combobox"
         aria-expanded={isOpen && totalItems > 0}
         aria-haspopup="listbox"
-        aria-owns="ingredient-suggestions"
         aria-controls="ingredient-suggestions"
       >
         <input
