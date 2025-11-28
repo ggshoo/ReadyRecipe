@@ -1,7 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { CANONICAL_INGREDIENTS } from "@/lib/datasets";
+
+interface Ingredient {
+  name: string;
+  slug: string;
+  isCustom: boolean;
+}
 
 interface IngredientAutocompleteProps {
   selectedIngredients: string[];
@@ -17,12 +23,37 @@ export default function IngredientAutocomplete({
   const [inputValue, setInputValue] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [allIngredients, setAllIngredients] = useState<string[]>(CANONICAL_INGREDIENTS);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
+  // Create a Set for efficient ingredient lookups
+  const ingredientSet = useMemo(
+    () => new Set(allIngredients.map((name) => name.toLowerCase())),
+    [allIngredients]
+  );
+
+  // Fetch all ingredients on mount
+  useEffect(() => {
+    async function fetchIngredients() {
+      try {
+        const response = await fetch("/api/ingredients");
+        if (response.ok) {
+          const data = await response.json();
+          const ingredientNames = data.ingredients.map((ing: Ingredient) => ing.name);
+          setAllIngredients(ingredientNames);
+        }
+      } catch (error) {
+        console.error("Failed to fetch ingredients:", error);
+        // Fall back to canonical ingredients on error
+      }
+    }
+    fetchIngredients();
+  }, []);
+
   // Filter suggestions based on input, excluding already selected ingredients
   const suggestions = inputValue.trim()
-    ? CANONICAL_INGREDIENTS.filter(
+    ? allIngredients.filter(
         (ingredient) =>
           ingredient.toLowerCase().includes(inputValue.toLowerCase()) &&
           !selectedIngredients.some(
@@ -32,7 +63,7 @@ export default function IngredientAutocomplete({
     : [];
 
   // Check if input matches any existing ingredient exactly
-  const exactMatch = CANONICAL_INGREDIENTS.find(
+  const exactMatch = allIngredients.find(
     (ingredient) => ingredient.toLowerCase() === inputValue.toLowerCase().trim()
   );
 
@@ -65,7 +96,7 @@ export default function IngredientAutocomplete({
     [onAddIngredient]
   );
 
-  const handleAddNewIngredient = useCallback(() => {
+  const handleAddNewIngredient = useCallback(async () => {
     const newIngredient = inputValue.trim().toLowerCase();
     if (
       newIngredient &&
@@ -73,13 +104,32 @@ export default function IngredientAutocomplete({
         (selected) => selected.toLowerCase() === newIngredient
       )
     ) {
+      // Add to backend to persist the new ingredient
+      try {
+        const response = await fetch("/api/ingredients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newIngredient }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Update local list if this is truly a new ingredient (using Set for efficient lookup)
+          if (data.ingredient && !ingredientSet.has(data.ingredient.name.toLowerCase())) {
+            setAllIngredients((prev) => [...prev, data.ingredient.name]);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to save ingredient:", error);
+        // Continue anyway - ingredient will still work for the session
+      }
+
       onAddIngredient(newIngredient);
       setInputValue("");
       setIsOpen(false);
       setHighlightedIndex(-1);
       inputRef.current?.focus();
     }
-  }, [inputValue, selectedIngredients, onAddIngredient]);
+  }, [inputValue, selectedIngredients, onAddIngredient, ingredientSet]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || totalItems === 0) {

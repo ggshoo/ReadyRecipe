@@ -27,3 +27,17 @@ export function formatCookTime(minutes: number): string {
 export function normalizeIngredient(ingredient: string): string {
   return ingredient.toLowerCase().trim();
 }
+
+/**
+ * Generate a slug from an ingredient name for duplicate prevention
+ * Normalizes capitalization and spacing to create a consistent identifier
+ */
+export function generateIngredientSlug(ingredient: string): string {
+  return ingredient
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
