@@ -7,6 +7,7 @@ import {
   calculateCoverageScore,
   calculateExactMatches,
 } from "./ai/embeddings";
+import { ingredientMatches } from "./utils";
 
 export interface RecipeScore {
   recipe: Recipe;
@@ -56,15 +57,17 @@ export async function generateRecipes(
           recipe.ingredients
         );
 
-        // Identify matched and missing ingredients
-        const userSet = new Set(
-          selectedIngredients.map((i) => i.toLowerCase())
-        );
-        const matchedIngredients = recipe.ingredients.filter((ingredient) =>
-          userSet.has(ingredient.toLowerCase())
+        // Identify matched and missing ingredients using flexible matching
+        const matchedIngredients = recipe.ingredients.filter((recipeIngredient) =>
+          selectedIngredients.some((userIngredient) =>
+            ingredientMatches(userIngredient, recipeIngredient)
+          )
         );
         const missingIngredients = recipe.ingredients.filter(
-          (ingredient) => !userSet.has(ingredient.toLowerCase())
+          (recipeIngredient) =>
+            !selectedIngredients.some((userIngredient) =>
+              ingredientMatches(userIngredient, recipeIngredient)
+            )
         );
 
         // Combined score: weighted average of similarity, coverage, and exact matches

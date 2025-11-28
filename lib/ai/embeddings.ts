@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { ingredientMatches } from "../utils";
 
 // Initialize OpenAI client (will use embedding model)
 const openai = new OpenAI({
@@ -90,28 +91,32 @@ export function cosineSimilarity(vec1: number[], vec2: number[]): number {
 
 /**
  * Calculate ingredient coverage score (what fraction of recipe ingredients are available)
+ * Uses flexible matching - partial and case-insensitive matches are counted
  */
 export function calculateCoverageScore(
   userIngredients: string[],
   recipeIngredients: string[]
 ): number {
-  const userSet = new Set(userIngredients.map((i) => i.toLowerCase()));
-  const matchedCount = recipeIngredients.filter((ingredient) =>
-    userSet.has(ingredient.toLowerCase())
+  const matchedCount = recipeIngredients.filter((recipeIngredient) =>
+    userIngredients.some((userIngredient) => 
+      ingredientMatches(userIngredient, recipeIngredient)
+    )
   ).length;
 
   return matchedCount / recipeIngredients.length;
 }
 
 /**
- * Calculate exact match count
+ * Calculate match count using flexible ingredient matching
+ * Supports case-insensitive and partial matches
  */
 export function calculateExactMatches(
   userIngredients: string[],
   recipeIngredients: string[]
 ): number {
-  const userSet = new Set(userIngredients.map((i) => i.toLowerCase()));
-  return recipeIngredients.filter((ingredient) =>
-    userSet.has(ingredient.toLowerCase())
+  return recipeIngredients.filter((recipeIngredient) =>
+    userIngredients.some((userIngredient) => 
+      ingredientMatches(userIngredient, recipeIngredient)
+    )
   ).length;
 }

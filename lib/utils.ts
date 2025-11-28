@@ -41,3 +41,34 @@ export function generateIngredientSlug(ingredient: string): string {
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+/**
+ * Check if a user ingredient matches a recipe ingredient using flexible matching
+ * Supports case-insensitive partial matches (e.g., "cauliflower" matches "Cauliflower Rice")
+ * Uses word boundary matching to prevent false positives (e.g., "rice" won't match "licorice")
+ */
+export function ingredientMatches(userIngredient: string, recipeIngredient: string): boolean {
+  const userLower = userIngredient.toLowerCase().trim();
+  const recipeLower = recipeIngredient.toLowerCase().trim();
+  
+  // Exact match
+  if (userLower === recipeLower) {
+    return true;
+  }
+  
+  // Word boundary regex for partial matching
+  // Matches if the ingredient appears as a whole word or at word boundaries
+  const userRegex = new RegExp(`\\b${escapeRegex(userLower)}\\b`, 'i');
+  const recipeRegex = new RegExp(`\\b${escapeRegex(recipeLower)}\\b`, 'i');
+  
+  // Check if user ingredient is a complete word within recipe ingredient
+  // or if recipe ingredient is a complete word within user ingredient
+  return userRegex.test(recipeLower) || recipeRegex.test(userLower);
+}
+
+/**
+ * Escape special regex characters in a string
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
