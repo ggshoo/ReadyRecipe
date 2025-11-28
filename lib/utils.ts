@@ -38,5 +38,6 @@ export function generateIngredientSlug(ingredient: string): string {
     .trim()
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-');
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
 }

@@ -1,27 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest";
-
-// Mock the server-side functions for testing
-// We'll test the pure functions by simulating them locally
+import { generateIngredientSlug, normalizeIngredient } from "../lib/utils";
 
 interface Ingredient {
   name: string;
   slug: string;
   isCustom: boolean;
-}
-
-// Replicate the generateIngredientSlug function for testing
-function generateIngredientSlug(ingredient: string): string {
-  return ingredient
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-");
-}
-
-// Replicate the normalizeIngredient function for testing
-function normalizeIngredient(ingredient: string): string {
-  return ingredient.toLowerCase().trim();
 }
 
 // Simple in-memory ingredient store for testing the logic

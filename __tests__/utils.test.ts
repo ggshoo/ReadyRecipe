@@ -29,6 +29,12 @@ describe("generateIngredientSlug", () => {
     expect(generateIngredientSlug("honey & mustard")).toBe("honey-mustard");
   });
 
+  it("should remove leading and trailing hyphens", () => {
+    expect(generateIngredientSlug("-honey-")).toBe("honey");
+    expect(generateIngredientSlug("---garlic---")).toBe("garlic");
+    expect(generateIngredientSlug("@olive oil!")).toBe("olive-oil");
+  });
+
   it("should handle empty strings", () => {
     expect(generateIngredientSlug("")).toBe("");
     expect(generateIngredientSlug("   ")).toBe("");

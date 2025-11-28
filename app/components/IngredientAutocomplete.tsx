@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { CANONICAL_INGREDIENTS } from "@/lib/datasets";
 
 interface Ingredient {
@@ -26,6 +26,12 @@ export default function IngredientAutocomplete({
   const [allIngredients, setAllIngredients] = useState<string[]>(CANONICAL_INGREDIENTS);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+
+  // Create a Set for efficient ingredient lookups
+  const ingredientSet = useMemo(
+    () => new Set(allIngredients.map((name) => name.toLowerCase())),
+    [allIngredients]
+  );
 
   // Fetch all ingredients on mount
   useEffect(() => {
@@ -107,8 +113,8 @@ export default function IngredientAutocomplete({
         });
         if (response.ok) {
           const data = await response.json();
-          // Update local list if this is truly a new ingredient
-          if (data.ingredient && !allIngredients.includes(data.ingredient.name)) {
+          // Update local list if this is truly a new ingredient (using Set for efficient lookup)
+          if (data.ingredient && !ingredientSet.has(data.ingredient.name.toLowerCase())) {
             setAllIngredients((prev) => [...prev, data.ingredient.name]);
           }
         }
@@ -123,7 +129,7 @@ export default function IngredientAutocomplete({
       setHighlightedIndex(-1);
       inputRef.current?.focus();
     }
-  }, [inputValue, selectedIngredients, onAddIngredient, allIngredients]);
+  }, [inputValue, selectedIngredients, onAddIngredient, ingredientSet]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isOpen || totalItems === 0) {

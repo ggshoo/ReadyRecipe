@@ -88,7 +88,7 @@ export async function getIngredientBySlug(
  */
 export async function addIngredient(name: string): Promise<Ingredient> {
   const normalizedName = normalizeIngredient(name);
-  const slug = generateIngredientSlug(name);
+  const slug = generateIngredientSlug(normalizedName);
 
   // Check if already exists in canonical
   if (canonicalIngredientsMap.has(slug)) {
