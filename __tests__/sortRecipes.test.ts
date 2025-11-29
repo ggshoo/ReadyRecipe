@@ -204,5 +204,16 @@ describe("filterAndSortRecipes", () => {
       // Should use coverageScore, so A (0.9) comes before B (0.5)
       expect(result.map((r) => r.name)).toEqual(["A", "B"]);
     });
+
+    it("should fall back to 'match' when 'coverageScore' is null", () => {
+      const recipes = [
+        { name: "A", coverageScore: null, match: 0.5 },
+        { name: "B", coverageScore: null, match: 0.9 },
+      ];
+      const result = filterAndSortRecipes(recipes);
+      // Should use match, so B (0.9) comes before A (0.5)
+      expect(result).toHaveLength(2);
+      expect(result.map((r) => r.name)).toEqual(["B", "A"]);
+    });
   });
 });

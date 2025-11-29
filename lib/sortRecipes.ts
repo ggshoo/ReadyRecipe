@@ -81,12 +81,14 @@ function getMatchValue<T extends RecipeWithMatch>(
   recipe: T
 ): number | string | null | undefined {
   // Prioritize coverageScore (used by RecipeScore in this codebase)
-  if ("coverageScore" in recipe && recipe.coverageScore !== undefined) {
+  // Check both undefined and null to properly fall back to match property
+  if ("coverageScore" in recipe && recipe.coverageScore != null) {
     return recipe.coverageScore;
   }
 
   // Fall back to match property
-  if ("match" in recipe && recipe.match !== undefined) {
+  // Check both undefined and null to properly return undefined
+  if ("match" in recipe && recipe.match != null) {
     return recipe.match;
   }
 
