@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RecipeScore } from "@/lib/actions";
+import { filterAndSortRecipeScores } from "@/lib/sortRecipes";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -17,7 +18,10 @@ export default function ResultsPage() {
     const storedIngredients = sessionStorage.getItem("selectedIngredients");
 
     if (storedResults && storedIngredients) {
-      setResults(JSON.parse(storedResults));
+      const parsedResults: RecipeScore[] = JSON.parse(storedResults);
+      // Filter out recipes with 0% match and sort by match percentage (highest first)
+      const filteredAndSorted = filterAndSortRecipeScores(parsedResults);
+      setResults(filteredAndSorted);
       setSelectedIngredients(JSON.parse(storedIngredients));
     } else {
       // No results found, redirect to ingredient selection
