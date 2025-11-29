@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { RecipeScore } from "@/lib/actions";
+import { filterAndSortRecipes } from "@/src/utils/sortRecipes";
 
 export default function ResultsPage() {
   const router = useRouter();
@@ -29,7 +30,13 @@ export default function ResultsPage() {
     setExpandedRecipe(expandedRecipe === recipeId ? null : recipeId);
   };
 
-  if (results.length === 0) {
+  // Filter out recipes with 0% match and sort by match percentage (descending)
+  const sortedResults = useMemo(
+    () => filterAndSortRecipes(results),
+    [results]
+  );
+
+  if (sortedResults.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -57,7 +64,7 @@ export default function ResultsPage() {
 
         {/* Results Grid */}
         <div className="space-y-6">
-          {results.map((result, index) => {
+          {sortedResults.map((result, index) => {
             const isExpanded = expandedRecipe === result.recipe.id;
             const matchPercentage = Math.round(result.coverageScore * 100);
 
