@@ -36,7 +36,7 @@ export default function ResultsPage() {
     [results]
   );
 
-  if (results.length === 0) {
+  if (sortedResults.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
