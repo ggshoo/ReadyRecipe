@@ -35,7 +35,7 @@ export function normalizeMatchValue(value: string | number | null | undefined): 
   // Handle string values
   if (typeof value === "string") {
     // Remove percentage sign and whitespace
-    const cleanedValue = value.trim().replace(/%$/, "").trim();
+    const cleanedValue = value.trim().replace(/%$/, "");
 
     // Try to parse as a number
     const parsed = parseFloat(cleanedValue);
