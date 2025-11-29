@@ -4,6 +4,21 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { generateRecipes } from "@/lib/actions";
 import IngredientAutocomplete from "@/app/components/IngredientAutocomplete";
+import SuggestedIngredients from "@/app/components/SuggestedIngredients";
+
+// Default suggested ingredients list - can be customized
+const SUGGESTED_INGREDIENTS = [
+  "eggs",
+  "milk",
+  "flour",
+  "salt",
+  "butter",
+  "sugar",
+  "tomato",
+  "onion",
+  "garlic",
+  "chicken breast",
+];
 
 export default function NewRecipePage() {
   const router = useRouter();
@@ -11,13 +26,39 @@ export default function NewRecipePage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleAddIngredient = (ingredient: string) => {
-    if (!selectedIngredients.includes(ingredient)) {
+    const normalizedIngredient = ingredient.toLowerCase();
+    if (!selectedIngredients.some((i) => i.toLowerCase() === normalizedIngredient)) {
       setSelectedIngredients((prev) => [...prev, ingredient]);
     }
   };
 
   const handleRemoveIngredient = (ingredient: string) => {
-    setSelectedIngredients((prev) => prev.filter((i) => i !== ingredient));
+    setSelectedIngredients((prev) =>
+      prev.filter((i) => i.toLowerCase() !== ingredient.toLowerCase())
+    );
+  };
+
+  const handleToggleSuggestion = (ingredient: string) => {
+    const isSelected = selectedIngredients.some(
+      (i) => i.toLowerCase() === ingredient.toLowerCase()
+    );
+    if (isSelected) {
+      handleRemoveIngredient(ingredient);
+    } else {
+      handleAddIngredient(ingredient);
+    }
+  };
+
+  const handleClearSuggestions = () => {
+    // Only clear ingredients that are in the suggestions list
+    setSelectedIngredients((prev) =>
+      prev.filter(
+        (ing) =>
+          !SUGGESTED_INGREDIENTS.some(
+            (sug) => sug.toLowerCase() === ing.toLowerCase()
+          )
+      )
+    );
   };
 
   const handleGenerateRecipes = async () => {
@@ -49,6 +90,16 @@ export default function NewRecipePage() {
           <p className="text-gray-600 dark:text-gray-400">
             Type to search and add ingredients you have available, and we&apos;ll find the best recipes for you
           </p>
+        </div>
+
+        {/* Suggested Ingredients */}
+        <div className="mb-6">
+          <SuggestedIngredients
+            suggestions={SUGGESTED_INGREDIENTS}
+            selected={selectedIngredients}
+            onToggle={handleToggleSuggestion}
+            onClearAll={handleClearSuggestions}
+          />
         </div>
 
         {/* Ingredient Autocomplete */}
