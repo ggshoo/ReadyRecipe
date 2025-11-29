@@ -19,10 +19,10 @@
  */
 
 /**
- * Interface for recipe objects with a match property.
- * The match can be in various formats (string, number, null, undefined).
+ * Interface for recipe objects with a coverage score property.
+ * The coverageScore can be in various formats (string, number, null, undefined).
  */
-interface RecipeWithMatch {
+interface RecipeWithCoverageScore {
   coverageScore?: number | string | null;
 }
 
@@ -89,7 +89,7 @@ export function normalizeMatch(match: number | string | null | undefined): numbe
  * filterAndSortRecipes(recipes);
  * // Returns: [{ name: "Recipe B", coverageScore: 0.85 }, { name: "Recipe A", coverageScore: 0.5 }]
  */
-export function filterAndSortRecipes<T extends RecipeWithMatch>(
+export function filterAndSortRecipes<T extends RecipeWithCoverageScore>(
   recipes?: T[] | null
 ): T[] {
   // Handle null/undefined input
@@ -98,9 +98,9 @@ export function filterAndSortRecipes<T extends RecipeWithMatch>(
   }
 
   // Filter out recipes with match <= 0 and sort by match descending
+  // .filter() returns a new array, so no need for .slice() before sort
   return recipes
     .filter((recipe) => normalizeMatch(recipe.coverageScore) > 0)
-    .slice() // Create a copy to avoid mutating during sort
     .sort((a, b) => {
       const matchA = normalizeMatch(a.coverageScore);
       const matchB = normalizeMatch(b.coverageScore);
