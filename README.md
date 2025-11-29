@@ -45,10 +45,10 @@ The app displays a set of quick-add ingredient chips at the top of the ingredien
 - **Combine with search**: Suggested ingredients work alongside the search box—both typed and suggested ingredients are included when searching for recipes
 
 ### Customizing Default Suggestions
-To change the default suggested ingredients, edit the `SUGGESTED_INGREDIENTS` array in `app/new/page.tsx`:
+To change the default suggested ingredients, edit the `DEFAULT_SUGGESTIONS` array in `app/components/SuggestedIngredients.tsx`:
 
 ```typescript
-const SUGGESTED_INGREDIENTS = [
+export const DEFAULT_SUGGESTIONS = [
   "eggs",
   "milk",
   "flour",
@@ -56,7 +56,7 @@ const SUGGESTED_INGREDIENTS = [
 ];
 ```
 
-The `SuggestedIngredients` component (`app/components/SuggestedIngredients.tsx`) also accepts a custom `suggestions` prop if you want to use different lists in different parts of the app.
+The `SuggestedIngredients` component also accepts a custom `suggestions` prop if you want to use different lists in different parts of the app.
 
 ## Motivation
 Our team — Cathryn Xu, Gigi Hsu, and Kristen De Lancey — are busy grad students who want a practical tool to suggest healthy, convenient meals from what they already have. We also wanted to explore constraint-satisfaction and embedding-based similarity in a scoped, deliverable project.

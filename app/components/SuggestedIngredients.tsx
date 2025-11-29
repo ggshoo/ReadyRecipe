@@ -1,13 +1,6 @@
 "use client";
 
-interface SuggestedIngredientsProps {
-  suggestions?: string[];
-  selected: string[];
-  onToggle: (ingredient: string) => void;
-  onClearAll: () => void;
-}
-
-const DEFAULT_SUGGESTIONS = [
+export const DEFAULT_SUGGESTIONS = [
   "eggs",
   "milk",
   "flour",
@@ -19,6 +12,13 @@ const DEFAULT_SUGGESTIONS = [
   "garlic",
   "chicken breast",
 ];
+
+interface SuggestedIngredientsProps {
+  suggestions?: string[];
+  selected: string[];
+  onToggle: (ingredient: string) => void;
+  onClearAll: () => void;
+}
 
 export default function SuggestedIngredients({
   suggestions = DEFAULT_SUGGESTIONS,

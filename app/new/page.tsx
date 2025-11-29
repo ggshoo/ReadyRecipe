@@ -4,21 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { generateRecipes } from "@/lib/actions";
 import IngredientAutocomplete from "@/app/components/IngredientAutocomplete";
-import SuggestedIngredients from "@/app/components/SuggestedIngredients";
-
-// Default suggested ingredients list - can be customized
-const SUGGESTED_INGREDIENTS = [
-  "eggs",
-  "milk",
-  "flour",
-  "salt",
-  "butter",
-  "sugar",
-  "tomato",
-  "onion",
-  "garlic",
-  "chicken breast",
-];
+import SuggestedIngredients, { DEFAULT_SUGGESTIONS } from "@/app/components/SuggestedIngredients";
 
 export default function NewRecipePage() {
   const router = useRouter();
@@ -54,7 +40,7 @@ export default function NewRecipePage() {
     setSelectedIngredients((prev) =>
       prev.filter(
         (ing) =>
-          !SUGGESTED_INGREDIENTS.some(
+          !DEFAULT_SUGGESTIONS.some(
             (sug) => sug.toLowerCase() === ing.toLowerCase()
           )
       )
@@ -95,7 +81,6 @@ export default function NewRecipePage() {
         {/* Suggested Ingredients */}
         <div className="mb-6">
           <SuggestedIngredients
-            suggestions={SUGGESTED_INGREDIENTS}
             selected={selectedIngredients}
             onToggle={handleToggleSuggestion}
             onClearAll={handleClearSuggestions}
