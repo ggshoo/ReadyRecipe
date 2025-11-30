@@ -393,8 +393,7 @@ export const MOCK_RECIPES: Recipe[] = [
       "Sauté onion, garlic, and bell pepper until soft",
       "Add black beans, cumin, and chili powder",
       "Cook for 5 minutes, mashing some beans",
-      "Warm tortillas",
-      "Fill with bean mixture and top with cheese, sour cream, cilantro, and lime",
+      "Serve bean mixture topped with cheese, sour cream, cilantro, and lime",
     ],
     cookTime: 15,
     servings: 4,
@@ -787,7 +786,7 @@ export const MOCK_RECIPES: Recipe[] = [
     ],
     instructions: [
       "Layer yogurt in a glass or bowl",
-      "Add a layer of granola or oats",
+      "Add a layer of oats",
       "Drizzle with honey",
       "Repeat layers as desired",
       "Serve immediately",
