@@ -89,8 +89,8 @@ export async function generateRecipes(
       })
     );
 
-    // Sort by combined score (highest first)
-    scoredRecipes.sort((a, b) => b.combinedScore - a.combinedScore);
+    // Sort by coverage score (match percentage) highest first
+    scoredRecipes.sort((a, b) => b.coverageScore - a.coverageScore);
 
     // Return top results
     return scoredRecipes;
