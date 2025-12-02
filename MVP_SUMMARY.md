@@ -141,7 +141,7 @@ docker run -p 3000:3000 readyrecipe
 Prepared for easy extension:
 - [ ] User authentication (Supabase)
 - [ ] Persistent saved recipes
-- [ ] Live recipe API integration
+- [x] Live recipe API integration (Spoonacular)
 - [ ] Vector database (pgvector)
 - [ ] Image-to-ingredient extraction
 - [ ] Dietary filters
@@ -153,8 +153,9 @@ Prepared for easy extension:
 1. `app/new/page.tsx` - Ingredient selection UI
 2. `app/results/page.tsx` - Results display
 3. `lib/actions.ts` - Server Action for recipe generation
-4. `lib/ai/embeddings.ts` - AI similarity logic
-5. `lib/datasets.ts` - Ingredient list & recipes
+4. `lib/api-clients.ts` - Spoonacular API integration
+5. `lib/ai/embeddings.ts` - AI similarity logic
+6. `lib/datasets.ts` - Ingredient list & mock recipes
 
 **Configuration:**
 - `package.json` - Dependencies
