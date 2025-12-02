@@ -114,12 +114,14 @@ Create a .env.local at the project root and provide the following variables (nam
 - NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 - SUPABASE_SERVICE_ROLE_KEY=your-service-role-key (server use only)
 - NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-- SPOONACULAR_API_KEY=your-spoonacular-or-recipe-api-key
+- SPOONACULAR_API_KEY=your-spoonacular-or-recipe-api-key (enables expanded recipe results from Spoonacular API)
 - EMBEDDING_MODEL=identifier-or-config-for-chosen-embedding-model
 - OPENAI_API_KEY (only if using an OpenAI-based embeddings route — optional)
 
 Notes:
 - Keep secret keys out of version control. Use secret management for deployments (Vercel/Supabase dashboards).
+- When SPOONACULAR_API_KEY is configured, the app fetches real recipes from the Spoonacular API for expanded results.
+- When SPOONACULAR_API_KEY is not configured, the app falls back to built-in mock recipes (30 curated recipes).
 
 ## Testing
 - Unit tests: Vitest
