@@ -29,12 +29,34 @@ Primary goals:
 
 ## MVP features
 - Ingredient selection UI based on a predefined canonical list.
+- **Suggested Ingredients**: Quick-add chips for common ingredients (eggs, milk, flour, salt, butter, sugar, tomato, onion, garlic, chicken breast). Click to toggle selection, with visual feedback and a "Clear suggestions" button.
 - Backend "generateRecipes" Server Action that:
   - Filters candidate recipes by dietary constraints (where applicable).
   - Encodes user-selected ingredients and candidate recipes into embeddings.
   - Computes similarity scores (cosine similarity) and applies a lightweight coverage/heuristic score for ranking.
 - Results page showing ranked recipes with ingredient match highlights and simple metadata (time, servings).
 - Local/in-memory vector similarity during MVP; optional transition to pgvector/Supabase later.
+
+## Suggested Ingredients
+The app displays a set of quick-add ingredient chips at the top of the ingredient selection page. Users can:
+- **Click a chip** to toggle that ingredient on/off (selected chips show a checkmark and highlighted background)
+- **Select multiple suggestions** at once
+- **Use "Clear suggestions"** to deselect all suggested ingredients at once
+- **Combine with search**: Suggested ingredients work alongside the search box—both typed and suggested ingredients are included when searching for recipes
+
+### Customizing Default Suggestions
+To change the default suggested ingredients, edit the `DEFAULT_SUGGESTIONS` array in `app/components/SuggestedIngredients.tsx`:
+
+```typescript
+export const DEFAULT_SUGGESTIONS = [
+  "eggs",
+  "milk",
+  "flour",
+  // ... add or remove ingredients as needed
+];
+```
+
+The `SuggestedIngredients` component also accepts a custom `suggestions` prop if you want to use different lists in different parts of the app.
 
 ## Motivation
 Our team — Cathryn Xu, Gigi Hsu, and Kristen De Lancey — are busy grad students who want a practical tool to suggest healthy, convenient meals from what they already have. We also wanted to explore constraint-satisfaction and embedding-based similarity in a scoped, deliverable project.
