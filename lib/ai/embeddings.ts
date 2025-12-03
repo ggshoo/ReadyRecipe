@@ -14,6 +14,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   try {
     if (!process.env.OPENAI_API_KEY) {
       // Fallback: Use simple token-based embedding for demo
+      console.log("EMBEDDING_SOURCE=FALLBACK");
       return generateSimpleEmbedding(text);
     }
 
@@ -22,9 +23,11 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       input: text,
     });
 
+    console.log("EMBEDDING_SOURCE=OpenAI");
     return response.data[0].embedding;
   } catch (error) {
-    console.error("Error generating embedding:", error);
+    console.log("EMBEDDING_SOURCE=FALLBACK (OpenAI error)");
+    console.error("OpenAI embedding error:", error);
     // Fallback to simple embedding
     return generateSimpleEmbedding(text);
   }
