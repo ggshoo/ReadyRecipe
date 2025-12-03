@@ -1,8 +1,33 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   calculateCoverageScore,
   calculateExactMatches,
+  generateEmbedding,
 } from "../lib/ai/embeddings";
+
+describe("generateEmbedding", () => {
+  const originalEnv = process.env.OPENAI_API_KEY;
+
+  beforeEach(() => {
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    process.env.OPENAI_API_KEY = originalEnv;
+    vi.restoreAllMocks();
+  });
+
+  it("should log EMBEDDING_SOURCE=FALLBACK when OPENAI_API_KEY is not set", async () => {
+    delete process.env.OPENAI_API_KEY;
+
+    const embedding = await generateEmbedding("test text");
+
+    expect(console.log).toHaveBeenCalledWith("EMBEDDING_SOURCE=FALLBACK");
+    expect(embedding).toBeInstanceOf(Array);
+    expect(embedding.length).toBe(384);
+  });
+});
 
 describe("calculateCoverageScore", () => {
   describe("exact matching", () => {
