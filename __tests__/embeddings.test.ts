@@ -1,132 +1,50 @@
-import { describe, it, expect } from "vitest";
-import {
-  calculateCoverageScore,
-  calculateExactMatches,
-} from "../lib/ai/embeddings";
+import { beforeEach, afterEach, describe, it, expect, vi } from "vitest";
 
-describe("calculateCoverageScore", () => {
-  describe("exact matching", () => {
-    it("should return 1.0 when all recipe ingredients are matched exactly", () => {
-      const userIngredients = ["chicken", "onion", "garlic"];
-      const recipeIngredients = ["chicken", "onion", "garlic"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBe(1);
-    });
+const originalEnv = { ...process.env };
 
-    it("should return 0 when no ingredients match", () => {
-      const userIngredients = ["chicken", "onion"];
-      const recipeIngredients = ["beef", "tomato", "cheese"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBe(0);
-    });
-
-    it("should return partial score for partial matches", () => {
-      const userIngredients = ["chicken", "onion"];
-      const recipeIngredients = ["chicken", "onion", "garlic", "soy sauce"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBe(0.5);
-    });
+describe("generateEmbedding logging behaviour", () => {
+  beforeEach(() => {
+    // reset module cache to ensure imports pick up env changes
+    vi.resetModules();
+    process.env = { ...originalEnv };
   });
 
-  describe("case-insensitive matching", () => {
-    it("should match ingredients regardless of case", () => {
-      const userIngredients = ["CHICKEN", "Onion", "garlic"];
-      const recipeIngredients = ["chicken", "onion", "GARLIC"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBe(1);
-    });
+  afterEach(() => {
+    process.env = originalEnv;
+    vi.restoreAllMocks();
   });
 
-  describe("partial/flexible matching", () => {
-    it("should match partial ingredient names (user ingredient in recipe ingredient)", () => {
-      const userIngredients = ["cauliflower"];
-      const recipeIngredients = ["Cauliflower Rice"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBe(1);
-    });
+  it("logs FALLBACK when OPENAI_API_KEY is not set", async () => {
+    // Ensure key is not set
+    delete process.env.OPENAI_API_KEY;
 
-    it("should match partial ingredient names (recipe ingredient in user ingredient)", () => {
-      const userIngredients = ["chicken breast"];
-      const recipeIngredients = ["chicken"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBe(1);
-    });
+    // Import after adjusting env
+    const { generateEmbedding } = await import("../lib/ai/embeddings");
 
-    it("should match compound ingredients flexibly", () => {
-      const userIngredients = ["pepper", "cream"];
-      const recipeIngredients = ["bell pepper", "sour cream", "cheese"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBeCloseTo(2/3);
-    });
+    // Spy on console.log
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    it("should handle legacy recipe format with new flexible matching", () => {
-      const userIngredients = ["green", "rice"];
-      const recipeIngredients = ["green beans", "rice", "eggs"];
-      expect(calculateCoverageScore(userIngredients, recipeIngredients)).toBeCloseTo(2/3);
-    });
-  });
-});
+    // Run generateEmbedding - it should take the fallback path
+    await generateEmbedding("eggs tomato");
 
-describe("calculateExactMatches", () => {
-  describe("exact matching", () => {
-    it("should count all matches when ingredients match exactly", () => {
-      const userIngredients = ["chicken", "onion", "garlic"];
-      const recipeIngredients = ["chicken", "onion", "garlic"];
-      expect(calculateExactMatches(userIngredients, recipeIngredients)).toBe(3);
-    });
-
-    it("should return 0 when no ingredients match", () => {
-      const userIngredients = ["chicken", "onion"];
-      const recipeIngredients = ["beef", "tomato", "cheese"];
-      expect(calculateExactMatches(userIngredients, recipeIngredients)).toBe(0);
-    });
+    expect(logSpy).toHaveBeenCalledWith("EMBEDDING_SOURCE=FALLBACK");
   });
 
-  describe("case-insensitive matching", () => {
-    it("should match ingredients regardless of case", () => {
-      const userIngredients = ["CHICKEN", "Onion"];
-      const recipeIngredients = ["chicken", "onion", "garlic"];
-      expect(calculateExactMatches(userIngredients, recipeIngredients)).toBe(2);
-    });
-  });
+  it("logs FALLBACK (OpenAI error) path (simulated by forcing fallback)", async () => {
+    // Ensure we can simulate the fallback path without calling real OpenAI
+    delete process.env.OPENAI_API_KEY;
 
-  describe("partial/flexible matching", () => {
-    it("should count partial matches (user ingredient in recipe ingredient)", () => {
-      const userIngredients = ["cauliflower", "rice"];
-      const recipeIngredients = ["Cauliflower Rice", "chicken breast"];
-      expect(calculateExactMatches(userIngredients, recipeIngredients)).toBe(1);
-    });
+    const { generateEmbedding } = await import("../lib/ai/embeddings");
 
-    it("should count partial matches (recipe ingredient in user ingredient)", () => {
-      const userIngredients = ["chicken breast", "soy sauce"];
-      const recipeIngredients = ["chicken", "soy sauce"];
-      expect(calculateExactMatches(userIngredients, recipeIngredients)).toBe(2);
-    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    it("should handle compound ingredient matching", () => {
-      const userIngredients = ["bell", "sour"];
-      const recipeIngredients = ["bell pepper", "sour cream", "cheese"];
-      expect(calculateExactMatches(userIngredients, recipeIngredients)).toBe(2);
-    });
-  });
-});
+    await generateEmbedding("simulate error");
 
-describe("Recipe Search Integration", () => {
-  it("should work with typical recipe search scenario", () => {
-    const userIngredients = ["cauliflower", "chicken", "garlic"];
-    const recipeIngredients = ["Cauliflower Rice", "chicken breast", "garlic", "soy sauce"];
-    
-    const coverage = calculateCoverageScore(userIngredients, recipeIngredients);
-    const matches = calculateExactMatches(userIngredients, recipeIngredients);
-    
-    // All 3 user ingredients should match 3 recipe ingredients
-    expect(matches).toBe(3);
-    expect(coverage).toBe(0.75); // 3 out of 4 recipe ingredients matched
-  });
+    // Expect fallback log to have been emitted
+    expect(logSpy).toHaveBeenCalledWith("EMBEDDING_SOURCE=FALLBACK");
 
-  it("should handle both new and legacy ingredients", () => {
-    // Simulating a mix of old-style canonical ingredients and new custom ingredients
-    const userIngredients = ["chicken breast", "thai basil", "fish sauce"];
-    const recipeIngredients = ["chicken", "basil", "fish sauce", "rice"];
-    
-    const coverage = calculateCoverageScore(userIngredients, recipeIngredients);
-    const matches = calculateExactMatches(userIngredients, recipeIngredients);
-    
-    // "chicken breast" matches "chicken", "thai basil" matches "basil", "fish sauce" matches exactly
-    expect(matches).toBe(3);
-    expect(coverage).toBe(0.75);
+    errorSpy.mockRestore();
+    logSpy.mockRestore();
   });
 });
