@@ -12,20 +12,32 @@ const openai = new OpenAI({
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
   try {
+    // Use OpenAI if an API key is present
     if (!process.env.OPENAI_API_KEY) {
-      // Fallback: Use simple token-based embedding for demo
+      // Explicit fallback log
+      console.log("EMBEDDING_SOURCE=FALLBACK");
       return generateSimpleEmbedding(text);
     }
 
+    // Attempt OpenAI embedding
     const response = await openai.embeddings.create({
       model: "text-embedding-3-small",
       input: text,
     });
 
+    // Successful OpenAI inference
+    console.log("EMBEDDING_SOURCE=OpenAI");
     return response.data[0].embedding;
   } catch (error) {
-    console.error("Error generating embedding:", error);
-    // Fallback to simple embedding
+    // If OpenAI call fails, log fallback (and error for debug without secrets)
+    try {
+      // Best-effort: do not print secrets
+      // Provide a short debug error message
+      console.error("OpenAI embedding error (debug):", error);
+    } catch (_) {
+      /* swallow any logging errors */
+    }
+    console.log("EMBEDDING_SOURCE=FALLBACK (OpenAI error)");
     return generateSimpleEmbedding(text);
   }
 }
@@ -34,10 +46,10 @@ export async function generateEmbedding(text: string): Promise<number[]> {
  * Simple embedding fallback for demo purposes
  * Creates a basic vector representation based on word tokens
  */
-function generateSimpleEmbedding(text: string): number[] {
+export function generateSimpleEmbedding(text: string): number[] {
   const words = text.toLowerCase().split(/\s+/);
   const embedding = new Array(384).fill(0); // 384-dimensional vector
-  
+
   // Simple hash-based embedding
   words.forEach((word, idx) => {
     const hash = simpleHash(word);
@@ -45,9 +57,12 @@ function generateSimpleEmbedding(text: string): number[] {
       embedding[i] += Math.sin(hash + i * 0.1) * (1 / (idx + 1));
     }
   });
-  
+
   // Normalize
   const magnitude = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+  if (magnitude === 0) {
+    return embedding;
+  }
   return embedding.map((val) => val / magnitude);
 }
 
@@ -98,25 +113,18 @@ export function calculateCoverageScore(
   recipeIngredients: string[]
 ): number {
   const matchedCount = recipeIngredients.filter((recipeIngredient) =>
-    userIngredients.some((userIngredient) => 
+    userIngredients.some((userIngredient) =>
       ingredientMatches(userIngredient, recipeIngredient)
     )
   ).length;
 
-  return matchedCount / recipeIngredients.length;
+  return recipeIngredients.length === 0 ? 0 : matchedCount / recipeIngredients.length;
 }
 
-/**
- * Calculate match count using flexible ingredient matching
- * Supports case-insensitive and partial matches
- */
-export function calculateExactMatches(
-  userIngredients: string[],
-  recipeIngredients: string[]
-): number {
-  return recipeIngredients.filter((recipeIngredient) =>
-    userIngredients.some((userIngredient) => 
-      ingredientMatches(userIngredient, recipeIngredient)
-    )
-  ).length;
-}
+/** (optional) exports for unit tests or other modules */
+export default {
+  generateEmbedding,
+  generateSimpleEmbedding,
+  cosineSimilarity,
+  calculateCoverageScore,
+};
