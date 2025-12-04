@@ -27,6 +27,22 @@ export async function POST(req: Request) {
       );
     }
 
+    // Validate recipe structure
+    for (const recipe of recipes) {
+      if (
+        typeof recipe.title !== "string" ||
+        !Array.isArray(recipe.ingredients)
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "Each recipe must have a 'title' string and 'ingredients' array",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const shoppingList = await generateShoppingList({
       recipes,
       userIngredients,
