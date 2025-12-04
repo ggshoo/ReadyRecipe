@@ -121,10 +121,28 @@ export function calculateCoverageScore(
   return recipeIngredients.length === 0 ? 0 : matchedCount / recipeIngredients.length;
 }
 
+/**
+ * Calculate exact matches count (number of recipe ingredients that match user ingredients)
+ * Uses flexible matching - partial and case-insensitive matches are counted
+ */
+export function calculateExactMatches(
+  userIngredients: string[],
+  recipeIngredients: string[]
+): number {
+  return recipeIngredients.filter((recipeIngredient) =>
+    userIngredients.some((userIngredient) =>
+      ingredientMatches(userIngredient, recipeIngredient)
+    )
+  ).length;
+}
+
 /** (optional) exports for unit tests or other modules */
-export default {
+const embeddingsExports = {
   generateEmbedding,
   generateSimpleEmbedding,
   cosineSimilarity,
   calculateCoverageScore,
+  calculateExactMatches,
 };
+
+export default embeddingsExports;
