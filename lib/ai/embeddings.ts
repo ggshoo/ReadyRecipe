@@ -122,8 +122,9 @@ export function calculateCoverageScore(
 }
 
 /**
- * Calculate exact matches count (number of recipe ingredients that match user ingredients)
- * Uses flexible matching - partial and case-insensitive matches are counted
+ * Calculate the count of recipe ingredients that match user ingredients
+ * Uses flexible matching logic (partial and case-insensitive) to determine matches
+ * Returns the number of matched recipe ingredients
  */
 export function calculateExactMatches(
   userIngredients: string[],
