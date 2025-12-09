@@ -131,21 +131,29 @@ export default function ResultsPage() {
 
                 {/* Score Details */}
                 <div className="mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded">
-                  <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <div className="text-gray-600 dark:text-gray-400">
-                        Coverage Score
+                        Match Score
                       </div>
-                      <div className="font-semibold">
-                        {(result.coverageScore * 100).toFixed(1)}%
+                      <div className="font-semibold text-green-600">
+                        {(result.coverageScore * 100).toFixed(0)}% of your ingredients
                       </div>
                     </div>
                     <div>
                       <div className="text-gray-600 dark:text-gray-400">
-                        Similarity Score
+                        Recipe Coverage
                       </div>
-                      <div className="font-semibold">
-                        {(result.similarityScore * 100).toFixed(1)}%
+                      <div className="font-semibold text-blue-600">
+                        {(result.utilizationScore * 100).toFixed(0)}% of recipe ingredients
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-gray-600 dark:text-gray-400">
+                        Similarity
+                      </div>
+                      <div className="font-semibold text-purple-600">
+                        {(result.similarityScore * 100).toFixed(0)}%
                       </div>
                     </div>
                     <div>

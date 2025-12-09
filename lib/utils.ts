@@ -51,7 +51,7 @@ export function ingredientMatches(userIngredient: string, recipeIngredient: stri
   const userLower = userIngredient.toLowerCase().trim();
   const recipeLower = recipeIngredient.toLowerCase().trim();
   
-  // Exact match
+  // Exact match (highest priority)
   if (userLower === recipeLower) {
     return true;
   }

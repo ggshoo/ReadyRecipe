@@ -8,12 +8,18 @@ import {
   calculateExactMatches,
 } from "./ai/embeddings";
 import { ingredientMatches } from "./utils";
-import { isSpoonacularAvailable, searchRecipesByIngredients } from "./api-clients";
+import {
+  isSpoonacularAvailable,
+  spoonacularSearchRecipesByIngredients,
+  isTheMealDBAvailable,
+  themealdbSearchMealsByIngredients,
+} from "./api";
 
 export interface RecipeScore {
   recipe: Recipe;
   similarityScore: number;
   coverageScore: number;
+  utilizationScore: number;
   exactMatches: number;
   combinedScore: number;
   matchedIngredients: string[];
@@ -35,11 +41,12 @@ async function scoreRecipes(
       const recipeIngredientsText = recipe.ingredients.join(", ");
       const recipeEmbedding = await generateEmbedding(recipeIngredientsText);
 
-      // Calculate similarity score
-      const similarityScore = cosineSimilarity(userEmbedding, recipeEmbedding);
+      // Calculate similarity score (clamp to 0-1 range in case of negative values from fallback embedding)
+      let similarityScore = cosineSimilarity(userEmbedding, recipeEmbedding);
+      similarityScore = Math.max(0, Math.min(1, similarityScore)); // Clamp to [0, 1]
 
-      // Calculate coverage score (what % of recipe ingredients user has)
-      const coverageScore = calculateCoverageScore(
+      // Calculate ingredient match rate (what % of user's ingredients are in this recipe?)
+      const ingredientMatchRate = calculateCoverageScore(
         selectedIngredients,
         recipe.ingredients
       );
@@ -63,17 +70,34 @@ async function scoreRecipes(
           )
       );
 
-      // Combined score: weighted average of similarity, coverage, and exact matches
-      // Higher weight on coverage and exact matches for better UX
+      // Calculate utilization score: what % of recipe ingredients do user have?
+      // E.g., recipe has 10 ingredients, user has 2 of them = 2/10 = 20% recipe coverage
+      const utilizationScore = recipe.ingredients.length === 0 ? 0 : matchedIngredients.length / recipe.ingredients.length;
+
+      // Calculate exact match percentage (only true exact matches, not partial)
+      const exactMatchPercentage = recipe.ingredients.length > 0 
+        ? exactMatches / recipe.ingredients.length 
+        : 0;
+
+      // Combined score: weighted average prioritizing what user is looking for
+      // - Ingredient Match Rate (50%): what % of user's ingredients are in this recipe? (most important)
+      // - Exact Matches (35%): recipes with ingredients user specifically asked for
+      // - Similarity (15%): recipes semantically aligned with user's ingredients
       const combinedScore =
-        similarityScore * 0.3 +
-        coverageScore * 0.5 +
-        (exactMatches / recipe.ingredients.length) * 0.2;
+        (ingredientMatchRate * 0.5) +      // 50%: User ingredient match rate (most important)
+        (exactMatchPercentage * 0.35) +  // 35%: Exact ingredient matches
+        (similarityScore * 0.15);        // 15%: Semantic similarity
+
+      // Debug logging for top recipes
+      if (combinedScore > 0.3) {
+        console.log(`[SCORE] ${recipe.name}: combined=${combinedScore.toFixed(3)}, exact=${exactMatches}/${recipe.ingredients.length}, match=${ingredientMatchRate.toFixed(3)}, similarity=${similarityScore.toFixed(3)}`);
+      }
 
       return {
         recipe,
         similarityScore,
-        coverageScore,
+        coverageScore: ingredientMatchRate,
+        utilizationScore,
         exactMatches,
         combinedScore,
         matchedIngredients,
@@ -86,7 +110,7 @@ async function scoreRecipes(
 /**
  * Main server action to generate recipe recommendations
  * Takes user-selected ingredients and returns ranked recipes
- * Uses Spoonacular API when available, falls back to mock recipes
+ * Fetches from multiple sources (Spoonacular, TheMealDB) and scores them together
  */
 export async function generateRecipes(
   selectedIngredients: string[]
@@ -100,28 +124,54 @@ export async function generateRecipes(
     const userIngredientsText = selectedIngredients.join(", ");
     const userEmbedding = await generateEmbedding(userIngredientsText);
 
-    let recipes: Recipe[];
+    const recipeMap = new Map<string, Recipe>(); // Use map to deduplicate by ID
 
-    // Try to fetch from Spoonacular API if available
+    // Try Spoonacular API first if available
     if (isSpoonacularAvailable()) {
       try {
-        console.log("Using Spoonacular API to fetch recipes...");
-        recipes = await searchRecipesByIngredients(selectedIngredients, 15);
-        console.log(`Fetched ${recipes.length} recipes from Spoonacular API`);
+        console.log("Fetching from Spoonacular API...");
+        const spoonacularRecipes = await spoonacularSearchRecipesByIngredients(selectedIngredients, 15);
+        console.log(`Fetched ${spoonacularRecipes.length} recipes from Spoonacular`);
+        spoonacularRecipes.forEach((recipe) => recipeMap.set(recipe.id, recipe));
       } catch (apiError) {
-        console.error("Spoonacular API error, falling back to mock recipes:", apiError);
-        recipes = MOCK_RECIPES;
+        console.error("Spoonacular API error:", apiError);
       }
-    } else {
-      console.log("Spoonacular API not configured, using mock recipes");
-      recipes = MOCK_RECIPES;
     }
 
-    // Score all recipes
+    // Try TheMealDB if available
+    if (isTheMealDBAvailable()) {
+      try {
+        console.log("Fetching from TheMealDB...");
+        const themealdbRecipes = await themealdbSearchMealsByIngredients(selectedIngredients, 15);
+        console.log(`Fetched ${themealdbRecipes.length} recipes from TheMealDB`);
+        themealdbRecipes.forEach((recipe) => recipeMap.set(recipe.id, recipe));
+      } catch (apiError) {
+        console.error("TheMealDB API error:", apiError);
+      }
+    }
+
+    // Fall back to mock recipes if no API recipes found
+    let recipes: Recipe[];
+    if (recipeMap.size === 0) {
+      console.log("No API recipes found, using mock recipes");
+      recipes = MOCK_RECIPES;
+    } else {
+      recipes = Array.from(recipeMap.values());
+      console.log(`Total unique recipes collected: ${recipes.length}`);
+    }
+
+    // Score all recipes together
     const scoredRecipes = await scoreRecipes(recipes, selectedIngredients, userEmbedding);
 
     // Sort by combined score (highest first)
     scoredRecipes.sort((a, b) => b.combinedScore - a.combinedScore);
+
+    // Log top 5 results for debugging
+    console.log("\n=== TOP RESULTS ===");
+    scoredRecipes.slice(0, 5).forEach((result, idx) => {
+      console.log(`${idx + 1}. ${result.recipe.name}: score=${result.combinedScore.toFixed(3)}, exact=${result.exactMatches}/${result.recipe.ingredients.length}, coverage=${result.coverageScore.toFixed(3)}`);
+    });
+    console.log("=== END RESULTS ===\n");
 
     // Return top results
     return scoredRecipes;

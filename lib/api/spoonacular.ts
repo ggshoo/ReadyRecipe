@@ -1,65 +1,14 @@
-import { Recipe } from "./datasets";
+import { Recipe } from "../datasets";
+import {
+  SpoonacularFindByIngredientsResponse,
+  SpoonacularRecipeInfo,
+} from "./types";
 
 const SPOONACULAR_API_KEY = process.env.SPOONACULAR_API_KEY;
 const SPOONACULAR_BASE_URL = "https://api.spoonacular.com";
 
 // Fallback instruction text when no instructions are available
 const FALLBACK_INSTRUCTION = "See full recipe for instructions.";
-
-/**
- * Response type for Spoonacular's findByIngredients endpoint
- */
-interface SpoonacularFindByIngredientsResponse {
-  id: number;
-  title: string;
-  image: string;
-  imageType: string;
-  usedIngredientCount: number;
-  missedIngredientCount: number;
-  missedIngredients: SpoonacularIngredient[];
-  usedIngredients: SpoonacularIngredient[];
-  unusedIngredients: SpoonacularIngredient[];
-  likes: number;
-}
-
-interface SpoonacularIngredient {
-  id: number;
-  amount: number;
-  unit: string;
-  unitLong: string;
-  unitShort: string;
-  aisle: string;
-  name: string;
-  original: string;
-  originalName: string;
-  meta: string[];
-  image: string;
-}
-
-/**
- * Response type for Spoonacular's recipe information endpoint
- */
-interface SpoonacularRecipeInfo {
-  id: number;
-  title: string;
-  readyInMinutes: number;
-  servings: number;
-  cuisines: string[];
-  extendedIngredients: {
-    id: number;
-    name: string;
-    original: string;
-    amount: number;
-    unit: string;
-  }[];
-  analyzedInstructions: {
-    name: string;
-    steps: {
-      number: number;
-      step: string;
-    }[];
-  }[];
-}
 
 /**
  * Determine recipe difficulty based on cook time and ingredient count
@@ -86,7 +35,7 @@ function mapSpoonacularToRecipe(info: SpoonacularRecipeInfo): Recipe {
   if (info.analyzedInstructions && info.analyzedInstructions.length > 0) {
     instructions = info.analyzedInstructions[0].steps.map((step) => step.step);
   }
-  
+
   if (instructions.length === 0) {
     instructions = [FALLBACK_INSTRUCTION];
   }
@@ -156,7 +105,7 @@ export async function searchRecipesByIngredients(
   validateIngredients(ingredients);
 
   const ingredientsParam = ingredients.join(",");
-  
+
   // First, find recipes by ingredients
   const findResponse = await fetch(
     `${SPOONACULAR_BASE_URL}/recipes/findByIngredients?apiKey=${SPOONACULAR_API_KEY}&ingredients=${encodeURIComponent(ingredientsParam)}&number=${limit}&ranking=1&ignorePantry=true`,
@@ -172,7 +121,7 @@ export async function searchRecipesByIngredients(
   }
 
   const findResults: SpoonacularFindByIngredientsResponse[] = await findResponse.json();
-  
+
   if (findResults.length === 0) {
     return [];
   }
@@ -195,9 +144,7 @@ export async function searchRecipesByIngredients(
   const recipeInfos: unknown[] = await infoResponse.json();
 
   // Validate and map responses to our Recipe format
-  return recipeInfos
-    .filter(isValidRecipeInfo)
-    .map(mapSpoonacularToRecipe);
+  return recipeInfos.filter(isValidRecipeInfo).map(mapSpoonacularToRecipe);
 }
 
 /**
