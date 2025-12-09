@@ -5,20 +5,21 @@ const THEMEALDB_BASE_URL = "https://www.themealdb.com/api/json/v1/1";
 
 /**
  * Parse TheMealDB meal response to extract ingredients
+ * Deduplicates ingredients to avoid showing the same ingredient multiple times
  */
 function extractIngredients(meal: TheMealDBMeal): string[] {
-  const ingredients: string[] = [];
+  const ingredientsSet = new Set<string>();
 
   // TheMealDB stores ingredients as strIngredient1, strIngredient2, etc.
   // and measurements as strMeasure1, strMeasure2, etc.
   for (let i = 1; i <= 20; i++) {
     const ingredient = meal[`strIngredient${i}`];
     if (ingredient && ingredient.trim().length > 0) {
-      ingredients.push(ingredient.toLowerCase().trim());
+      ingredientsSet.add(ingredient.toLowerCase().trim());
     }
   }
 
-  return ingredients;
+  return Array.from(ingredientsSet);
 }
 
 /**

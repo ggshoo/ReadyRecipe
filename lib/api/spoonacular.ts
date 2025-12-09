@@ -29,7 +29,10 @@ function calculateDifficulty(
  * Convert Spoonacular recipe info to our Recipe format
  */
 function mapSpoonacularToRecipe(info: SpoonacularRecipeInfo): Recipe {
-  const ingredientsList = info.extendedIngredients.map((ing) => ing.name);
+  // Deduplicate ingredients by converting to Set then back to Array
+  const ingredientsList = Array.from(
+    new Set(info.extendedIngredients.map((ing) => ing.name.toLowerCase().trim()))
+  );
 
   let instructions: string[] = [];
   if (info.analyzedInstructions && info.analyzedInstructions.length > 0) {
