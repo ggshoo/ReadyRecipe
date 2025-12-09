@@ -204,12 +204,3 @@ export function calculateExactMatches(
     })
   ).length;
 }
-
-/** (optional) exports for unit tests or other modules */
-export default {
-  generateEmbedding,
-  generateSimpleEmbedding,
-  cosineSimilarity,
-  calculateIngredientMatchRate,
-  calculateExactMatches,
-};
