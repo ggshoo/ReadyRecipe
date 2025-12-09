@@ -18,7 +18,7 @@ import {
 export interface RecipeScore {
   recipe: Recipe;
   similarityScore: number;
-  coverageScore: number;
+  ingredientMatchRate: number;
   utilizationScore: number;
   exactMatches: number;
   combinedScore: number;
@@ -96,7 +96,7 @@ async function scoreRecipes(
       return {
         recipe,
         similarityScore,
-        coverageScore: ingredientMatchRate,
+        ingredientMatchRate,
         utilizationScore,
         exactMatches,
         combinedScore,
@@ -173,7 +173,7 @@ export async function generateRecipes(
     // Log top 5 results for debugging
     console.log("\n=== TOP RESULTS ===");
     scoredRecipes.slice(0, 5).forEach((result, idx) => {
-      console.log(`${idx + 1}. ${result.recipe.name}: score=${result.combinedScore.toFixed(3)}, exact=${result.exactMatches}/${result.recipe.ingredients.length}, coverage=${result.coverageScore.toFixed(3)}`);
+    console.log(`${idx + 1}. ${result.recipe.name}: score=${result.combinedScore.toFixed(3)}, exact=${result.exactMatches}/${result.recipe.ingredients.length}, coverage=${result.ingredientMatchRate.toFixed(3)}\n`);
     });
     console.log("=== END RESULTS ===\n");
 

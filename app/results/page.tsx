@@ -66,7 +66,7 @@ export default function ResultsPage() {
         <div className="space-y-6">
           {sortedResults.map((result, index) => {
             const isExpanded = expandedRecipe === result.recipe.id;
-            const matchPercentage = Math.round(result.coverageScore * 100);
+            const matchPercentage = Math.round(result.ingredientMatchRate * 100);
 
             return (
               <div
@@ -137,7 +137,7 @@ export default function ResultsPage() {
                         Match Score
                       </div>
                       <div className="font-semibold text-green-600">
-                        {(result.coverageScore * 100).toFixed(0)}% of your ingredients
+                        {(result.ingredientMatchRate * 100).toFixed(0)}% of your ingredients
                       </div>
                     </div>
                     <div>

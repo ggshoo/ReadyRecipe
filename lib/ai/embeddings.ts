@@ -156,15 +156,18 @@ export function calculateIngredientMatchRate(
 }
 
 /**
- * Calculate number of exact ingredient matches
- * Counts how many recipe ingredients match user ingredients using flexible matching
- */
-/**
- * Calculate how many recipe ingredients have TRUE EXACT matches with user ingredients
- * (i.e., the user ingredient and recipe ingredient are nearly identical)
- * This penalizes recipes with generic ingredients when user wants specific ones
- * E.g., user "feta cheese" + recipe "cheese" = NOT an exact match (too generic)
- *       user "feta cheese" + recipe "feta cheese" = exact match
+ * Calculate exact ingredient matches between user and recipe ingredients.
+ * 
+ * Counts how many recipe ingredients are TRUE EXACT matches with user ingredients.
+ * This penalizes recipes with generic ingredients when user wants specific ones.
+ * 
+ * Examples:
+ * - user "feta cheese" + recipe "cheese" = NOT an exact match (too generic)
+ * - user "feta cheese" + recipe "feta cheese" = exact match
+ * 
+ * @param userIngredients - Array of ingredients user is searching for
+ * @param recipeIngredients - Array of ingredients in the recipe
+ * @returns Number of recipe ingredients that exactly match user ingredients
  */
 export function calculateExactMatches(
   userIngredients: string[],
