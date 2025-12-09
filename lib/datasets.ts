@@ -276,7 +276,7 @@ export const MOCK_RECIPES: Recipe[] = [
     name: "Caprese Salad",
     ingredients: [
       "tomato",
-      "cheese",
+      "mozzarella",
       "basil",
       "olive oil",
       "salt",

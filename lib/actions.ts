@@ -150,15 +150,19 @@ export async function generateRecipes(
       }
     }
 
-    // Fall back to mock recipes if no API recipes found
+    // Always include mock recipes alongside API results for better coverage
+    // Deduplicate by recipe name to avoid exact duplicates
     let recipes: Recipe[];
-    if (recipeMap.size === 0) {
-      console.log("No API recipes found, using mock recipes");
-      recipes = MOCK_RECIPES;
-    } else {
-      recipes = Array.from(recipeMap.values());
-      console.log(`Total unique recipes collected: ${recipes.length}`);
-    }
+    const apiRecipes = Array.from(recipeMap.values());
+    const apiRecipeNames = new Set(apiRecipes.map((r) => r.name.toLowerCase()));
+    
+    // Add mock recipes that aren't already in API results
+    const mockRecipesToAdd = MOCK_RECIPES.filter(
+      (mockRecipe) => !apiRecipeNames.has(mockRecipe.name.toLowerCase())
+    );
+    
+    recipes = [...apiRecipes, ...mockRecipesToAdd];
+    console.log(`Total recipes: ${apiRecipes.length} from API + ${mockRecipesToAdd.length} unique from mocks = ${recipes.length}`);
 
     // Score all recipes together
     const scoredRecipes = await scoreRecipes(recipes, selectedIngredients, userEmbedding);
