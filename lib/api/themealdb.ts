@@ -32,9 +32,10 @@ function parseInstructions(strInstructions: string): string[] {
 
   let steps: string[] = [];
 
-  // First, try to split by explicit "Step X:" markers (most reliable)
-  const explicitStepRegex = /step\s+\d+\s*:/i;
+  // First, try to split by explicit step markers like "Step X:" or "step X" (case insensitive)
+  const explicitStepRegex = /step\s+\d+\s*:?/i;
   if (explicitStepRegex.test(strInstructions)) {
+    // Split on step markers and filter out empty ones
     steps = strInstructions
       .split(explicitStepRegex)
       .map((step) => step.trim())
