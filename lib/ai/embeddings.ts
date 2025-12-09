@@ -1,10 +1,17 @@
 import OpenAI from "openai";
 import { ingredientMatches } from "../utils";
 
-// Initialize OpenAI client (will use embedding model)
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-demo",
-});
+// Lazy-initialize OpenAI client to avoid hanging on module load
+let openai: OpenAI | null = null;
+
+function getOpenAIClient(): OpenAI {
+  if (!openai) {
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY || "dummy-key-for-demo",
+    });
+  }
+  return openai;
+}
 
 /**
  * Generate embeddings for text using OpenAI's embedding model
@@ -20,7 +27,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     }
 
     // Attempt OpenAI embedding
-    const response = await openai.embeddings.create({
+    const response = await getOpenAIClient().embeddings.create({
       model: "text-embedding-3-small",
       input: text,
     });
@@ -97,16 +104,6 @@ export function generateSimpleEmbedding(text: string): number[] {
   return embedding.map((val) => val / magnitude);
 }
 
-function simpleHash(str: string): number {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32-bit integer
-  }
-  return hash;
-}
-
 /**
  * Calculate cosine similarity between two embedding vectors
  */
@@ -136,10 +133,6 @@ export function cosineSimilarity(vec1: number[], vec2: number[]): number {
 }
 
 /**
- * Calculate ingredient coverage score (what fraction of recipe ingredients are available)
- * Uses flexible matching - partial and case-insensitive matches are counted
- */
-/**
  * Calculate the ingredient match rate: what % of user's ingredients are found in this recipe?
  * Returns a percentage (0-1) of user ingredients that have a match in the recipe
  * E.g., user searches ["feta cheese", "olives"], recipe has both -> 100% (2/2)
@@ -160,14 +153,6 @@ export function calculateIngredientMatchRate(
 
   // Return percentage of user ingredients found
   return foundCount / userIngredients.length;
-}
-
-// Backward compatibility alias
-export function calculateCoverageScore(
-  userIngredients: string[],
-  recipeIngredients: string[]
-): number {
-  return calculateIngredientMatchRate(userIngredients, recipeIngredients);
 }
 
 /**
@@ -225,7 +210,6 @@ export default {
   generateEmbedding,
   generateSimpleEmbedding,
   cosineSimilarity,
-  calculateCoverageScore,
   calculateIngredientMatchRate,
   calculateExactMatches,
 };

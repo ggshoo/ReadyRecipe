@@ -4,7 +4,7 @@ import { MOCK_RECIPES, Recipe } from "./datasets";
 import {
   generateEmbedding,
   cosineSimilarity,
-  calculateCoverageScore,
+  calculateIngredientMatchRate,
   calculateExactMatches,
 } from "./ai/embeddings";
 import { ingredientMatches } from "./utils";
@@ -46,7 +46,7 @@ async function scoreRecipes(
       similarityScore = Math.max(0, Math.min(1, similarityScore)); // Clamp to [0, 1]
 
       // Calculate ingredient match rate (what % of user's ingredients are in this recipe?)
-      const ingredientMatchRate = calculateCoverageScore(
+      const ingredientMatchRate = calculateIngredientMatchRate(
         selectedIngredients,
         recipe.ingredients
       );

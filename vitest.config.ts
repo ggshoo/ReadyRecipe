@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['**/__tests__/**/*.test.ts'],
+    globals: true,
+    testTimeout: 10000,
   },
   resolve: {
     alias: {
