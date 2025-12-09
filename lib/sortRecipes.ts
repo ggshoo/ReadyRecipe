@@ -19,11 +19,11 @@
  */
 
 /**
- * Interface for recipe objects with a coverage score property.
- * The coverageScore can be in various formats (string, number, null, undefined).
+ * Interface for recipe objects with an ingredient match rate property.
+ * The ingredientMatchRate can be in various formats (string, number, null, undefined).
  */
 interface RecipeWithCoverageScore {
-  coverageScore?: number | string | null;
+  ingredientMatchRate?: number | string | null;
 }
 
 /**
@@ -77,17 +77,17 @@ export function normalizeMatch(match: number | string | null | undefined): numbe
 /**
  * Filters and sorts recipes by match percentage.
  *
- * @param recipes - Array of recipe objects with a coverageScore property
+ * @param recipes - Array of recipe objects with an ingredientMatchRate property
  * @returns A new array containing only recipes with match > 0, sorted by match descending
  *
  * @example
  * const recipes = [
- *   { name: "Recipe A", coverageScore: 0.5 },
- *   { name: "Recipe B", coverageScore: 0.85 },
- *   { name: "Recipe C", coverageScore: 0 },
+ *   { name: "Recipe A", ingredientMatchRate: 0.5 },
+ *   { name: "Recipe B", ingredientMatchRate: 0.85 },
+ *   { name: "Recipe C", ingredientMatchRate: 0 },
  * ];
  * filterAndSortRecipes(recipes);
- * // Returns: [{ name: "Recipe B", coverageScore: 0.85 }, { name: "Recipe A", coverageScore: 0.5 }]
+ * // Returns: [{ name: "Recipe B", ingredientMatchRate: 0.85 }, { name: "Recipe A", ingredientMatchRate: 0.5 }]
  */
 export function filterAndSortRecipes<T extends RecipeWithCoverageScore>(
   recipes?: T[] | null
@@ -100,10 +100,10 @@ export function filterAndSortRecipes<T extends RecipeWithCoverageScore>(
   // Filter out recipes with match <= 0 and sort by match descending
   // .filter() returns a new array, so no need for .slice() before sort
   return recipes
-    .filter((recipe) => normalizeMatch(recipe.coverageScore) > 0)
+    .filter((recipe) => normalizeMatch(recipe.ingredientMatchRate) > 0)
     .sort((a, b) => {
-      const matchA = normalizeMatch(a.coverageScore);
-      const matchB = normalizeMatch(b.coverageScore);
+      const matchA = normalizeMatch(a.ingredientMatchRate);
+      const matchB = normalizeMatch(b.ingredientMatchRate);
       return matchB - matchA; // Descending order
     });
 }
