@@ -167,8 +167,8 @@ export async function generateRecipes(
     // Score all recipes together
     const scoredRecipes = await scoreRecipes(recipes, selectedIngredients, userEmbedding);
 
-    // Sort by combined score (highest first)
-    scoredRecipes.sort((a, b) => b.combinedScore - a.combinedScore);
+    // Sort by coverage score (match percentage) highest first
+    scoredRecipes.sort((a, b) => b.coverageScore - a.coverageScore);
 
     // Log top 5 results for debugging
     console.log("\n=== TOP RESULTS ===");
